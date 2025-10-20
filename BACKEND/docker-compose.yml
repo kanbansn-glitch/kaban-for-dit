@@ -1,0 +1,43 @@
+# docker-compose.yml
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql8
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpwd
+      MYSQL_DATABASE: appdb
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppwd
+      # Optionnel : jeu de caractères/tri
+      TZ: UTC
+    command: >
+      --default-authentication-plugin=caching_sha2_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-prootpwd"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: pma
+    environment:
+      PMA_HOST: db
+      PMA_USER: appuser
+      PMA_PASSWORD: apppwd
+      UPLOAD_LIMIT: 200M
+      MEMORY_LIMIT: 512M
+    ports:
+      - "8080:80"   # http://localhost:8081
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
