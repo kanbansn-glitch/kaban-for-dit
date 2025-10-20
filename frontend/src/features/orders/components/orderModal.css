@@ -1,0 +1,114 @@
+.order-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: 1300;
+}
+
+.order-modal {
+  width: min(840px, 100%);
+  background: #ffffff;
+  border-radius: 5px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 50px 120px -55px rgba(15, 23, 42, 0.45);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  max-height: 90vh;
+}
+
+.order-modal header {
+  padding: 24px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eef2fb;
+}
+
+.order-modal header h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.order-modal header button {
+  border: none;
+  background: none;
+  font-size: 24px;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.order-modal-body {
+  padding: 28px 32px;
+  overflow-y: auto;
+}
+
+.order-fields {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.order-field {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.order-field input,
+.order-field select {
+  border-radius: 5px;
+  border: 1px solid #dbe4f4;
+  padding: 0.7rem 0.85rem;
+  font-size: 15px;
+  color: #0f172a;
+}
+
+.order-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.order-checkbox input {
+  width: 18px;
+  height: 18px;
+}
+
+.order-modal footer {
+  padding: 22px 32px 28px;
+  border-top: 1px solid #eef2fb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+.order-modal footer .secondary,
+.order-modal footer .primary {
+  padding: 0.7rem 1.6rem;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.order-modal footer .secondary {
+  background: #ffffff;
+  border-color: rgba(148, 163, 184, 0.45);
+  color: #475569;
+}
+
+.order-modal footer .primary {
+  background: #2563eb;
+  color: #ffffff;
+}

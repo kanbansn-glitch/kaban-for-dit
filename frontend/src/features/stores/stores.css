@@ -1,0 +1,116 @@
+.stores-container {
+  display: grid;
+  gap: 24px;
+}
+
+.stores-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stores-header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.stores-header .primary {
+  padding: 0.75rem 1.5rem;
+  border-radius: 5px;
+  border: none;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.stores-header .primary:hover {
+  filter: brightness(0.95);
+}
+
+.stores-list {
+  display: grid;
+  gap: 20px;
+}
+
+.store-card {
+  display: grid;
+  grid-template-columns: 200px 1fr auto;
+  align-items: stretch;
+  background: #ffffff;
+  border-radius: 5px;
+  box-shadow: 0 30px 80px -60px rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  overflow: hidden;
+}
+
+.store-branch {
+  background: #f1f5f9;
+  padding: 32px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 18px;
+}
+
+.store-details {
+  padding: 24px 32px;
+  display: grid;
+  gap: 8px;
+  color: #475569;
+}
+
+.store-details h2 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.store-details p {
+  margin: 0;
+  font-size: 15px;
+}
+
+.store-metric {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.12);
+  border-radius: 5px;
+  padding: 4px 12px;
+  width: fit-content;
+}
+
+.store-actions {
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+}
+
+.store-actions .outline {
+  border-radius: 5px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: #ffffff;
+  color: #2563eb;
+  padding: 0.5rem 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.stores-empty {
+  padding: 48px;
+  text-align: center;
+  color: #94a3b8;
+  background: #ffffff;
+  border-radius: 5px;
+  border: 1px dashed rgba(148, 163, 184, 0.4);
+}

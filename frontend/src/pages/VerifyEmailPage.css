@@ -1,0 +1,97 @@
+.verify-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1.5rem;
+}
+
+.verify-card-description {
+  margin: 0;
+  color: #475569;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.verify-email-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.08);
+  color: #1d4ed8;
+  font-weight: 600;
+  font-size: 0.9rem;
+  max-width: 100%;
+}
+
+.verify-email-pill span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.verify-email-form {
+  display: grid;
+  gap: 1rem;
+  text-align: left;
+}
+
+.verify-email-form label {
+  display: grid;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.9rem;
+}
+
+.verify-email-form input {
+  border-radius: 5px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  padding: 0.75rem 0.85rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #0f172a;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.verify-email-form input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.verify-email-form button {
+  border: none;
+  border-radius: 5px;
+  background: #2563eb;
+  color: white;
+  padding: 0.85rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.verify-email-form button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.verify-login-button {
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  border-radius: 5px;
+  background: white;
+  color: #1e293b;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.verify-login-button:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+}

@@ -1,0 +1,128 @@
+.suppliers-container {
+  display: grid;
+  gap: 24px;
+}
+
+.suppliers-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.suppliers-header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.suppliers-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.suppliers-actions .primary {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  padding: 0.65rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.suppliers-actions .secondary {
+  border-radius: 5px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: #ffffff;
+  padding: 0.65rem 1.5rem;
+  color: #475569;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.suppliers-table {
+  background: #ffffff;
+  border-radius: 5px;
+  box-shadow: 0 30px 80px -60px rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+}
+
+.suppliers-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.suppliers-table thead th {
+  text-align: left;
+  padding: 12px 16px;
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 13px;
+  border-bottom: 1px solid #edf2fb;
+}
+
+.suppliers-table tbody td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5ff;
+  color: #0f172a;
+}
+
+.suppliers-table tbody tr {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.suppliers-table tbody tr:hover {
+  background: rgba(37, 99, 235, 0.05);
+}
+
+.table-empty {
+  text-align: center;
+  padding: 32px;
+  color: #94a3b8;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 5px;
+  padding: 0.35rem 0.9rem;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tag-success {
+  background: rgba(16, 185, 129, 0.15);
+  color: #0f9d58;
+}
+
+.tag-danger {
+  background: rgba(248, 113, 113, 0.15);
+  color: #d14343;
+}
+
+.suppliers-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.suppliers-pagination .secondary {
+  border-radius: 5px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: #ffffff;
+  padding: 0.4rem 1rem;
+  color: #475569;
+  cursor: pointer;
+}
+.suppliers-pagination .secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

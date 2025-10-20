@@ -1,0 +1,16 @@
+# OS junk
+.DS_Store
+
+# Environment files
+.env
+*/.env
+
+# Node / PHP dependencies
+frontend/node_modules/
+BACKEND/vendor/
+
+# Frontend build output
+frontend/dist/
+
+# Archives
+*.zip

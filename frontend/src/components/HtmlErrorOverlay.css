@@ -1,0 +1,41 @@
+.html-error-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+}
+
+.html-error-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: white;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.html-error-header button {
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  padding: 0.4rem 0.9rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.html-error-header button:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.html-error-frame {
+  flex: 1;
+  border: none;
+  border-radius: 5px;
+  background: white;
+  box-shadow: 0 25px 60px -30px rgba(15, 23, 42, 0.55);
+}
