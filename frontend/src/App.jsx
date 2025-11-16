@@ -7,10 +7,8 @@ import DashboardPage from './pages/DashboardPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import HtmlErrorOverlay from './components/HtmlErrorOverlay';
 import AuthInitializer from './features/auth/components/AuthInitializer';
-import DocsPage from './pages/DocsPage.jsx';
 
 const IS_DEV = import.meta.env.DEV;
-const DOCS_ENABLED = import.meta.env.VITE_DOCS_ENABLED === 'true';
 
 function App() {
   const token = useRecoilValue(authTokenState);
@@ -24,7 +22,6 @@ function App() {
         <Route path="/register" element={<AuthPage mode="register" />} />
         <Route path="/login" element={<AuthPage mode="login" />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
-        {DOCS_ENABLED ? <Route path="/docs" element={<DocsPage />} /> : null}
         <Route
           path="/dashboard"
           element={token ? <DashboardPage /> : <Navigate to="/login" replace />}

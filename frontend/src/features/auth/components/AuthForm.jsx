@@ -75,7 +75,7 @@ function AuthForm({ mode = 'register', onSuccess, onVerificationRequired }) {
       if (onSuccess) {
         onSuccess();
       }
-    } catch (error) {
+    } catch {
       // errors already surfaced through the auth hook
     } finally {
       setIsGoogleLoading(false);
@@ -98,7 +98,7 @@ function AuthForm({ mode = 'register', onSuccess, onVerificationRequired }) {
           enabled: Boolean(config?.enabled),
           clientId: config?.client_id ?? '',
         });
-      } catch (error) {
+      } catch {
         if (isMounted) {
           setGoogleConfig({ enabled: false, clientId: '' });
         }
@@ -169,7 +169,7 @@ function AuthForm({ mode = 'register', onSuccess, onVerificationRequired }) {
       script.removeEventListener('load', initialize);
       script.removeEventListener('error', handleError);
     };
-  }, [googleConfig, handleGoogleCredentialResponse]);
+  }, [googleConfig, handleGoogleCredentialResponse, isRegister]);
 
   const handleGoogleSignIn = () => {
     if (!googleConfig.enabled || !googleConfig.clientId) {

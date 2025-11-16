@@ -8,6 +8,50 @@ function formatCurrency(value) {
   return `${amount.toLocaleString('fr-FR')} FCFA`;
 }
 
+function unwrapPayload(response) {
+  if (response == null) {
+    return null;
+  }
+
+  if (typeof response === 'object' && 'data' in response) {
+    return response.data;
+  }
+
+  return response;
+}
+
+function ensureObject(response) {
+  const payload = unwrapPayload(response);
+
+  if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (Array.isArray(payload) && payload.length > 0) {
+    return payload[0];
+  }
+
+  return null;
+}
+
+function ensureArray(response) {
+  const payload = unwrapPayload(response);
+
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (payload?.data && Array.isArray(payload.data)) {
+    return payload.data;
+  }
+
+  if (payload?.items && Array.isArray(payload.items)) {
+    return payload.items;
+  }
+
+  return [];
+}
+
 function StatCard({ label, hint, value, accent }) {
   return (
     <li className="reports-stat">
@@ -85,22 +129,34 @@ function ProfitVsRevenueChart({ data }) {
     );
   }
 
-  const maxValue = Math.max(...data.map((item) => Math.max(item.revenue, item.profit)), 1);
+  const topMargin = 10;
+  const bottomMargin = 10;
+  const chartHeight = 100 - topMargin - bottomMargin;
+
+  const values = data.flatMap((item) => [Number(item.profit ?? 0), Number(item.revenue ?? 0)]);
+  const minValue = Math.min(0, ...values);
+  const maxValue = Math.max(0, ...values, 1);
+  const range = maxValue - minValue || 1;
+  const pointsCount = data.length - 1 || 1;
+
+  const getY = (value) => {
+    const normalized = (value - minValue) / range;
+    return topMargin + (1 - normalized) * chartHeight;
+  };
+
+  const zeroY = getY(0);
+
+  const points = (key) =>
+    data.map((item, index) => {
+      const x = (index / pointsCount) * 100;
+      const y = getY(Number(item[key] ?? 0));
+      return `${x},${y}`;
+    }).join(' ');
+
   const highlight = data[data.length - 2] ?? data[data.length - 1];
-
-  const points = (key) => data.map((item, index) => {
-    const x = (index / (data.length - 1 || 1)) * 100;
-    const y = 100 - (item[key] / maxValue) * 80;
-    return `${x},${y}`;
-  }).join(' ');
-
   const highlightIndex = data.findIndex((item) => item.month === highlight?.month);
-  const highlightX = highlightIndex >= 0
-    ? (highlightIndex / (data.length - 1 || 1)) * 100
-    : 0;
-  const highlightY = highlight
-    ? 100 - (highlight.revenue / maxValue) * 80
-    : 0;
+  const highlightX = highlightIndex >= 0 ? (highlightIndex / pointsCount) * 100 : 0;
+  const highlightY = highlight ? getY(Number(highlight.revenue ?? 0)) : zeroY;
 
   return (
     <section className="reports-card wide">
@@ -111,10 +167,11 @@ function ProfitVsRevenueChart({ data }) {
 
       <div className="reports-chart">
         <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+          <line className="line zero" x1="0" x2="100" y1={zeroY} y2={zeroY} />
           <polyline className="line profit" points={points('profit')} />
           <polyline className="line revenue" points={points('revenue')} />
 
-          <line className="guide-line" x1={highlightX} x2={highlightX} y1={highlightY} y2={100} />
+          <line className="guide-line" x1={highlightX} x2={highlightX} y1={zeroY} y2={highlightY} />
           <circle className="guide-dot" cx={highlightX} cy={highlightY} r="1.8" />
         </svg>
 
@@ -198,14 +255,16 @@ function ReportsSection() {
 
         if (!mounted) return;
 
-        const mapResponse = (response) => response?.data ?? response ?? null;
-
-        setOverview(mapResponse(overviewRes));
-        setCategories(mapResponse(categoriesRes) ?? []);
-        setChartData(mapResponse(chartRes) ?? []);
-        setProducts(mapResponse(productsRes) ?? []);
-      } catch {
-        // Silently fail; layout will show empty states.
+        setOverview(ensureObject(overviewRes));
+        setCategories(ensureArray(categoriesRes));
+        setChartData(ensureArray(chartRes));
+        setProducts(ensureArray(productsRes));
+      } catch (error) {
+        console.error('[Reports] Failed to load data', error);
+        setOverview(null);
+        setCategories([]);
+        setChartData([]);
+        setProducts([]);
       } finally {
         if (mounted) setIsLoading(false);
       }

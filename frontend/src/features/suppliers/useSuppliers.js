@@ -51,15 +51,45 @@ export function useSuppliers(token, { categories, stores, products = [] }) {
   }, []);
 
   const openEdit = useCallback((supplier) => {
+    const firstProduct = Array.isArray(supplier.products) ? supplier.products[0] : null;
+    const productCategoryId =
+      firstProduct?.category_id ||
+      firstProduct?.category?.id ||
+      supplier.category_id ||
+      supplier.category?.id ||
+      '';
+
     setForm({
       ...emptyForm,
       id: supplier.id,
-      name: supplier.name,
+      name: supplier.name ?? '',
       email: supplier.email ?? '',
       contact_number: supplier.contact_number ?? '',
       address: supplier.address ?? '',
       takes_back_returns: Boolean(supplier.takes_back_returns),
-      existing_product_id: '',
+      product_name: firstProduct?.name ?? supplier.product_name ?? '',
+      product_code: firstProduct?.product_code ?? supplier.product_code ?? '',
+      category_id: productCategoryId ? String(productCategoryId) : '',
+      buying_price: firstProduct?.buying_price != null
+        ? String(firstProduct.buying_price)
+        : supplier.buying_price ?? '',
+      selling_price: firstProduct?.selling_price != null
+        ? String(firstProduct.selling_price)
+        : supplier.selling_price ?? '',
+      quantity: firstProduct?.quantity != null
+        ? String(firstProduct.quantity)
+        : supplier.quantity ?? '',
+      threshold: firstProduct?.threshold != null
+        ? String(firstProduct.threshold)
+        : supplier.threshold ?? '',
+      expiry_date: firstProduct?.expiry_date ?? supplier.expiry_date ?? '',
+      store_id:
+        Array.isArray(firstProduct?.stores) && firstProduct.stores.length === 1
+          ? String(firstProduct.stores[0].id)
+          : supplier.store_id
+            ? String(supplier.store_id)
+            : '',
+      on_the_way: supplier.on_the_way ?? '',
     });
     setModalOpen(true);
   }, []);

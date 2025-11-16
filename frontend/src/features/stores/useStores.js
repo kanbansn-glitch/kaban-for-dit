@@ -23,6 +23,7 @@ export function useStores(token) {
     setIsLoading(true);
     try {
       const response = await storesApi.list(token);
+      console.log(response);
       setStores(response?.data ?? response ?? []);
     } catch (error) {
       toast.error(error.message || 'Impossible de charger les magasins.');
@@ -83,6 +84,8 @@ export function useStores(token) {
         toast.success('Store added successfully.');
       }
 
+     
+
       closeModal();
       await loadStores();
     } catch (error) {
@@ -91,6 +94,8 @@ export function useStores(token) {
   }, [token, form, loadStores, closeModal]);
 
   const memoizedStores = useMemo(() => stores, [stores]);
+
+ 
 
   return {
     stores: memoizedStores,

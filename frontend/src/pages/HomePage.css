@@ -68,16 +68,3 @@
 .home-actions .outline:hover {
   box-shadow: none;
 }
-
-.home-docs-link {
-  margin-top: 2.5rem;
-}
-
-.home-docs-link .link-button {
-  border: none;
-  background: none;
-  color: #2563eb;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: underline;
-}

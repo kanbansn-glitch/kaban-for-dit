@@ -46,7 +46,7 @@ function OrdersSection() {
     };
   }, [token]);
 
-  const ordersHook = useOrders(token);
+  const ordersHook = useOrders(token, suppliers);
 
   const {
     orders,
@@ -187,7 +187,7 @@ function OrdersSection() {
                   </td>
                   <td>
                     <div className="orders-row-actions">
-                      {order.status !== 'Delivered' && (
+                      {order.status !== 'Delivered' && order.status !== 'Returned' && (
                         <button type="button" onClick={() => updateStatus(order, 'Delivered')}>
                           Mark as Delivered
                         </button>

@@ -1,4 +1,5 @@
 function InventorySummary({ summary }) {
+   
   return (
     <section className="inventory-summary">
       <article>

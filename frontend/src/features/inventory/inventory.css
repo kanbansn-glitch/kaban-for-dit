@@ -111,6 +111,21 @@
   border-bottom: 1px solid #f1f5ff;
 }
 
+.inventory-sell-button {
+  border: 1px solid rgba(37, 99, 235, 0.4);
+  background: #ffffff;
+  color: #2563eb;
+  border-radius: 5px;
+  padding: 0.35rem 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.inventory-sell-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .inventory-products tbody tr.active,
 .inventory-products tbody tr:hover {
   background: rgba(37, 99, 235, 0.08);
@@ -380,6 +395,10 @@
   max-height: 90vh;
 }
 
+.inventory-modal.sell-modal {
+  width: min(480px, 100%);
+}
+
 .inventory-modal header {
   display: flex;
   justify-content: space-between;
@@ -410,6 +429,10 @@
   overflow-y: auto;
 }
 
+.inventory-modal.sell-modal .inventory-modal-body {
+  grid-template-columns: 1fr;
+}
+
 .inventory-modal-image {
   border: 1.5px dashed #d5def1;
   border-radius: 5px;
@@ -421,6 +444,25 @@
   text-align: center;
   font-size: 0.85rem;
   color: #94a3b8;
+}
+
+.inventory-modal.sell-modal .inventory-modal-fields {
+  grid-template-columns: 1fr;
+}
+
+.inventory-sell-hint {
+  font-size: 0.95rem;
+  color: #475569;
+  margin: 0 0 1rem;
+}
+
+.inventory-sell-empty {
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 5px;
+  border: 1px dashed #cbd5f5;
+  color: #64748b;
+  font-size: 0.9rem;
 }
 
 .inventory-modal-image button {
@@ -435,6 +477,10 @@
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.inventory-modal-fields.full {
+  grid-template-columns: 1fr;
 }
 
 .inventory-modal-fields label {

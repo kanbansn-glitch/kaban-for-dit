@@ -44,6 +44,11 @@ function StoresSection() {
                   {' '}
                   active products
                 </span>
+                <span className="store-stock-metric">
+                  {Number(store.stock_quantity ?? 0).toLocaleString('en-IN')}
+                  {' '}
+                  units in stock
+                </span>
                 {store.address_line ? <p>{store.address_line}</p> : null}
                 {store.city || store.postal_code ? (
                   <p>

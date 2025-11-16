@@ -1,10 +1,12 @@
 import { apiRequest } from '../../api/client';
 
 export function fetchProducts(token) {
-  return apiRequest('products', {
+  let value = apiRequest('products', {
     method: 'GET',
     token,
   });
+  console.log('fetchProducts value:', value);
+  return value;
 }
 
 export function fetchCategories(token) {

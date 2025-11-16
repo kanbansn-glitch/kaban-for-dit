@@ -72,6 +72,23 @@
   color: #0f172a;
 }
 
+.supplier-eye {
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: #ffffff;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.supplier-eye:hover {
+  transform: scale(1.05);
+}
+
 .suppliers-table tbody tr {
   cursor: pointer;
   transition: background 0.15s ease;

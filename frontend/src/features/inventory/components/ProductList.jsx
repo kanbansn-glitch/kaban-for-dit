@@ -11,7 +11,7 @@ function classes(...values) {
   return values.filter(Boolean).join(' ');
 }
 
-function ProductList({ products, onSelect, selectedId, onOpenModal }) {
+function ProductList({ products, onSelect, selectedId, onOpenModal, onSell }) {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 8;
   const totalPages = Math.max(1, Math.ceil(products.length / pageSize));
@@ -47,6 +47,7 @@ function ProductList({ products, onSelect, selectedId, onOpenModal }) {
             <th>Threshold Value</th>
             <th>Expiry Date</th>
             <th>Availability</th>
+            <th>Sell</th>
           </tr>
         </thead>
         <tbody>
@@ -67,11 +68,26 @@ function ProductList({ products, onSelect, selectedId, onOpenModal }) {
                   {product.status_label}
                 </span>
               </td>
+              <td>
+                <button
+                  type="button"
+                  className="inventory-sell-button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onSell(product);
+                  }}
+                  disabled={(product.stores ?? []).every(
+                    (store) => (store.pivot?.quantity ?? store.quantity ?? 0) <= 0,
+                  )}
+                >
+                  Sell
+                </button>
+              </td>
             </tr>
           ))}
           {pageItems.length === 0 ? (
             <tr>
-              <td colSpan={6} className="inventory-empty">
+              <td colSpan={8} className="inventory-empty">
                 Aucun produit pour le moment.
               </td>
             </tr>

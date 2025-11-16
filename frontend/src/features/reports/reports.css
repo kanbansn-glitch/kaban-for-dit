@@ -154,6 +154,12 @@
   opacity: 0.65;
 }
 
+.line.zero {
+  stroke: rgba(148, 163, 184, 0.4);
+  stroke-width: 1;
+  stroke-dasharray: 4;
+}
+
 .guide-line {
   stroke: rgba(148, 163, 184, 0.6);
   stroke-dasharray: 2.5;

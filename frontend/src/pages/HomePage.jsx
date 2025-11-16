@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 
 function HomePage() {
   const navigate = useNavigate();
-  const docsEnabled = import.meta.env.VITE_DOCS_ENABLED === 'true';
 
   return (
     <div className="home-wrapper">
@@ -25,13 +24,6 @@ function HomePage() {
             Se connecter
           </button>
         </div>
-        {docsEnabled ? (
-          <div className="home-docs-link">
-            <button type="button" className="link-button" onClick={() => navigate('/docs')}>
-              Explorer la documentation du projet
-            </button>
-          </div>
-        ) : null}
       </div>
     </div>
   );

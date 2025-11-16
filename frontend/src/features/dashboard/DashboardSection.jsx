@@ -3,6 +3,22 @@ import { dashboardApi } from '../../api/resources.js';
 import { useAuth } from '../../hooks/useAuth';
 import './dashboard.css';
 
+function roundToTwo(value) {
+  const number = Number(value ?? 0);
+  if (!Number.isFinite(number)) {
+    return 0;
+  }
+  return Math.round(number * 100) / 100;
+}
+
+function formatCurrency(value) {
+  const amount = roundToTwo(value);
+  return `${amount.toLocaleString('fr-FR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })} FCFA`;
+}
+
 function StatCard({ icon, label, value, sublabel }) {
   return (
     <div className="dash-card">
@@ -16,10 +32,6 @@ function StatCard({ icon, label, value, sublabel }) {
       </div>
     </div>
   );
-}
-
-function formatCurrency(value) {
-  return `${Number(value || 0).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA`;
 }
 
 function SalesPurchaseChart({ data }) {
@@ -47,28 +59,41 @@ function SalesPurchaseChart({ data }) {
 
 function OrderSummaryChart({ data }) {
   if (!data.length) return null;
-  const maxValue = Math.max(...data.map((item) => Math.max(item.ordered, item.delivered)), 1);
   const width = 420;
   const height = 160;
-  const pointsOrdered = data.map((item, index) => {
-    const x = (index / (data.length - 1 || 1)) * (width - 40) + 20;
-    const y = height - 20 - (item.ordered / maxValue) * (height - 40);
-    return `${x},${y}`;
-  });
-  const pointsDelivered = data.map((item, index) => {
-    const x = (index / (data.length - 1 || 1)) * (width - 40) + 20;
-    const y = height - 20 - (item.delivered / maxValue) * (height - 40);
-    return `${x},${y}`;
-  });
+  const topMargin = 20;
+  const bottomMargin = 20;
+  const chartHeight = height - topMargin - bottomMargin;
+  const pointsCount = data.length - 1 || 1;
+
+  const allValues = data.flatMap((item) => [Number(item.ordered ?? 0), Number(item.delivered ?? 0)]);
+  const minValue = Math.min(0, ...allValues);
+  const maxValue = Math.max(0, ...allValues, 1);
+  const range = maxValue - minValue || 1;
+
+  const getY = (value) => {
+    const normalized = (value - minValue) / range;
+    return topMargin + (1 - normalized) * chartHeight;
+  };
+
+  const zeroY = getY(0);
+
+  const points = (key) =>
+    data.map((item, index) => {
+      const x = (index / pointsCount) * (width - 40) + 20;
+      const y = getY(Number(item[key] ?? 0));
+      return `${x},${y}`;
+    });
 
   return (
     <svg className="chart-line" width={width} height={height} role="img">
-      <polyline points={pointsOrdered.join(' ')} className="line line-blue" />
-      <polyline points={pointsDelivered.join(' ')} className="line line-orange" />
+      <line x1={20} x2={width - 20} y1={zeroY} y2={zeroY} className="line zero" />
+      <polyline points={points('ordered').join(' ')} className="line line-blue" />
+      <polyline points={points('delivered').join(' ')} className="line line-orange" />
       {data.map((item, index) => {
-        const x = (index / (data.length - 1 || 1)) * (width - 40) + 20;
-        const yOrdered = height - 20 - (item.ordered / maxValue) * (height - 40);
-        const yDelivered = height - 20 - (item.delivered / maxValue) * (height - 40);
+        const x = (index / pointsCount) * (width - 40) + 20;
+        const yOrdered = getY(Number(item.ordered ?? 0));
+        const yDelivered = getY(Number(item.delivered ?? 0));
         return (
           <g key={item.month}>
             <circle cx={x} cy={yOrdered} r={4} className="dot dot-blue" />

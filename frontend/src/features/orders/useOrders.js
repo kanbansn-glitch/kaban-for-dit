@@ -18,12 +18,34 @@ const emptyForm = {
   status: 'Confirmed',
 };
 
-export function useOrders(token) {
+export function useOrders(token, supplierData = []) {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
-  const [showHistory, setShowHistory] = useState(false);
+  const [showHistory, setShowHistory] = useState(true);
+
+  const supplierMap = useMemo(() => {
+    const map = new Map();
+    supplierData.forEach((supplier) => {
+      map.set(Number(supplier.id), supplier);
+    });
+    return map;
+  }, [supplierData]);
+
+  const canSupplierTakeReturn = useCallback(
+    (supplierId) => {
+      if (!supplierId) {
+        return true;
+      }
+      const supplier = supplierMap.get(Number(supplierId));
+      if (!supplier) {
+        return true;
+      }
+      return Boolean(supplier.takes_back_returns);
+    },
+    [supplierMap],
+  );
 
   const loadOrders = useCallback(async () => {
     if (!token) return;
@@ -75,13 +97,50 @@ export function useOrders(token) {
     setModalOpen(false);
   }, []);
 
-  const handleChange = useCallback((event) => {
-    const { name, value, type, checked } = event.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
-  }, []);
+  const handleChange = useCallback(
+    (event) => {
+      const { name, value, type, checked } = event.target;
+      setForm((prev) => {
+        const nextValue = type === 'checkbox' ? checked : value;
+
+        if (name === 'status' && nextValue === 'Returned') {
+          const supplierId = Number(prev.supplier_id || 0);
+          if (!canSupplierTakeReturn(supplierId)) {
+            const supplier = supplierMap.get(supplierId);
+            toast.warning(
+              supplier
+                ? `${supplier.name} does not accept returns.`
+                : 'Selected supplier does not accept returns.',
+            );
+            return prev;
+          }
+        }
+
+        if (name === 'supplier_id' && prev.status === 'Returned') {
+          const supplierId = Number(nextValue || 0);
+          if (!canSupplierTakeReturn(supplierId)) {
+            const supplier = supplierMap.get(supplierId);
+            toast.warning(
+              supplier
+                ? `${supplier.name} does not accept returns. Status reset to Confirmed.`
+                : 'Selected supplier does not accept returns. Status reset to Confirmed.',
+            );
+            return {
+              ...prev,
+              supplier_id: nextValue,
+              status: 'Confirmed',
+            };
+          }
+        }
+
+        return {
+          ...prev,
+          [name]: nextValue,
+        };
+      });
+    },
+    [canSupplierTakeReturn, supplierMap],
+  );
 
   const setProductData = useCallback((product, stores = []) => {
     setForm((prev) => ({
@@ -129,11 +188,21 @@ export function useOrders(token) {
     };
 
     try {
-      if (form.id) {
-        await ordersApi.update(token, form.id, payload);
-        toast.success('Order updated successfully.');
-      } else {
-        await ordersApi.create(token, payload);
+    if (form.status === 'Returned' && !canSupplierTakeReturn(supplierId)) {
+      const supplier = supplierMap.get(supplierId);
+      toast.warning(
+        supplier
+          ? `${supplier.name} does not accept returns.`
+          : 'Selected supplier does not accept returns.',
+      );
+      return;
+    }
+
+    if (form.id) {
+      await ordersApi.update(token, form.id, payload);
+      toast.success('Order updated successfully.');
+    } else {
+      await ordersApi.create(token, payload);
         toast.success('Order added successfully.');
       }
 
@@ -147,6 +216,21 @@ export function useOrders(token) {
   const updateStatus = useCallback(
     async (order, status) => {
       if (!token) return;
+      if (
+        status === 'Returned' &&
+        (order.supplier?.takes_back_returns === false ||
+          !canSupplierTakeReturn(order.supplier_id ?? order.supplier?.id))
+      ) {
+        const supplier =
+          order.supplier ||
+          supplierMap.get(Number(order.supplier_id ?? order.supplier?.id ?? 0));
+        toast.warning(
+          supplier
+            ? `${supplier.name} does not accept returns.`
+            : 'Selected supplier does not accept returns.',
+        );
+        return;
+      }
       try {
         await ordersApi.update(token, order.id, {
           product_id: order.product_id,
@@ -163,7 +247,7 @@ export function useOrders(token) {
         toast.error(error.message || 'Unable to update order status.');
       }
     },
-    [token, loadOrders],
+    [token, loadOrders, canSupplierTakeReturn, supplierMap],
   );
 
   const memoOrders = useMemo(() => orders, [orders]);

@@ -1,5 +1,11 @@
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000/api';
 const IS_DEV = import.meta.env.DEV;
+const DEFAULT_API_URL = IS_DEV ? 'http://127.0.0.1:8000/api' : 'https://api.djafy.com/api';
+const API_URL = (import.meta.env.VITE_API_URL ?? DEFAULT_API_URL).replace(/\/+$/, '');
+
+function buildApiUrl(path = '') {
+  const normalizedPath = path.replace(/^\/+/, '');
+  return normalizedPath ? `${API_URL}/${normalizedPath}` : API_URL;
+}
 
 async function parseResponse(response) {
   const contentType = response.headers.get('content-type') ?? '';
@@ -33,7 +39,7 @@ async function parseResponse(response) {
 }
 
 export async function apiRequest(path, { method = 'GET', token, body, headers = {} } = {}) {
-  const response = await fetch(`${API_URL}/${path.replace(/^\/+/, '')}`, {
+  const response = await fetch(buildApiUrl(path), {
     method,
     headers: {
       'Content-Type': 'application/json',
@@ -47,5 +53,6 @@ export async function apiRequest(path, { method = 'GET', token, body, headers = 
 }
 
 export function getApiUrl(path = '') {
-  return `${API_URL}/${path.replace(/^\/+/, '')}`;
+  return buildApiUrl(path);
 }
+

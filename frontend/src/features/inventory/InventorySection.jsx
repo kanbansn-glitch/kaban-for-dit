@@ -5,6 +5,7 @@ import InventorySummary from './components/InventorySummary';
 import ProductList from './components/ProductList';
 import ProductDetail from './components/ProductDetail';
 import ProductModal from './components/ProductModal';
+import SellProductModal from './components/SellProductModal';
 import './inventory.css';
 
 function InventorySection() {
@@ -28,7 +29,11 @@ function InventorySection() {
     handleProductCreate,
     handleProductUpdate,
     handleProductDelete,
+    handleProductSale,
   } = useInventoryData(token);
+  const [isSaleModalOpen, setSaleModalOpen] = useState(false);
+  const [saleProduct, setSaleProduct] = useState(null);
+  const [isRecordingSale, setRecordingSale] = useState(false);
 
   const handleCreate = async (payload) => {
     setSubmitting(true);
@@ -74,6 +79,33 @@ function InventorySection() {
     setSelectedProductId(null);
   };
 
+  const handleOpenSaleModal = (product) => {
+    setSaleProduct(product);
+    setSaleModalOpen(true);
+  };
+
+  const handleSaleSubmit = async ({ productId, storeId, quantity }) => {
+    setRecordingSale(true);
+    try {
+      const success = await handleProductSale({ productId, storeId, quantity });
+      if (success) {
+        setSaleModalOpen(false);
+        setSaleProduct(null);
+      }
+      return success;
+    } finally {
+      setRecordingSale(false);
+    }
+  };
+
+  const handleSaleClose = () => {
+    if (isRecordingSale) {
+      return;
+    }
+    setSaleModalOpen(false);
+    setSaleProduct(null);
+  };
+
   if (!token) {
     return (
       <div className="inventory-empty-state">
@@ -106,6 +138,7 @@ function InventorySection() {
               setEditingProduct(null);
               openModal();
             }}
+            onSell={handleOpenSaleModal}
           />
         )}
       </div>
@@ -122,6 +155,14 @@ function InventorySection() {
         isSubmitting={isSubmitting}
         initialData={editingProduct}
         isEditing={Boolean(editingProduct)}
+      />
+
+      <SellProductModal
+        open={isSaleModalOpen}
+        product={saleProduct}
+        onClose={handleSaleClose}
+        onSubmit={handleSaleSubmit}
+        isSubmitting={isRecordingSale}
       />
 
       {isLoading ? <div className="inventory-loader">Chargement…</div> : null}

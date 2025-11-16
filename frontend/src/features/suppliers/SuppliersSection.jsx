@@ -84,6 +84,7 @@ function SuppliersSection() {
               <th>Email</th>
               <th>Type</th>
               <th>On the way</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -116,6 +117,19 @@ function SuppliersSection() {
                     </span>
                   </td>
                   <td>{supplier.on_the_way ?? '—'}</td>
+                  <td>
+                    <button
+                      type="button"
+                      className="supplier-eye"
+                      aria-label="View supplier"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openEdit(supplier);
+                      }}
+                    >
+                      <span aria-hidden>👁</span>
+                    </button>
+                  </td>
                 </tr>
               ))
             )}
