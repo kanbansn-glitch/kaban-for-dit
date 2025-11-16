@@ -11,11 +11,12 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $products = Product::with(['category', 'supplier', 'stores' => function ($query) {
-            $query->select('stores.id', 'stores.name')
-                ->withPivot(['quantity', 'threshold']);
-        }])
-            ->where('user_id', $request->user()->id)
+        $products = Product::query()
+            ->with(['category', 'supplier', 'stores' => function ($query) {
+                $query->select('stores.id', 'stores.name')
+                    ->withPivot(['quantity', 'threshold']);
+            }])
+            ->forUser($request->user()->id)
             ->latest('created_at')
             ->get();
 
@@ -51,10 +52,8 @@ class ProductController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    public function show(Request $request, Product $product)
+    public function show(Product $product)
     {
-        $this->authorizeProduct($request, $product);
-
         return response()->json([
             'success' => true,
             'data' => $product->load('category', 'supplier', 'stores'),
@@ -63,8 +62,6 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product)
     {
-        $this->authorizeProduct($request, $product);
-
         $validated = $this->validatedData($request, $product->id);
         $storesData = $validated['stores'] ?? null;
         unset($validated['stores']);
@@ -89,10 +86,8 @@ class ProductController extends Controller
         ]);
     }
 
-    public function destroy(Request $request, Product $product)
+    public function destroy(Product $product)
     {
-        $this->authorizeProduct($request, $product);
-
         $product->delete();
 
         return response()->noContent();
@@ -154,13 +149,6 @@ class ProductController extends Controller
         }
 
         return 'in_stock';
-    }
-
-    protected function authorizeProduct(Request $request, Product $product): void
-    {
-        if ($product->user_id !== $request->user()->id) {
-            abort(Response::HTTP_FORBIDDEN, 'You are not allowed to access this product.');
-        }
     }
 
     protected function syncProductStores(Product $product, ?array $storesData): void

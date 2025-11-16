@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\Sale;
 use App\Models\Supplier;
+use App\Support\Money;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
@@ -17,39 +18,37 @@ class DashboardController extends Controller
     {
         $userId = $request->user()->id;
         $now = Carbon::now();
-        $last7 = $now->copy()->subDays(7);
 
-        $totalProducts = Product::where('user_id', $userId)->count();
-        $totalSuppliers = Supplier::where('user_id', $userId)->count();
-        $quantityInHand = (int) Product::where('user_id', $userId)->sum('quantity');
-        $toBeReceived = (int) PurchaseOrder::where('user_id', $userId)
+        $totalProducts = Product::forUser($userId)->count();
+        $totalSuppliers = Supplier::forUser($userId)->count();
+        $quantityInHand = (int) Product::forUser($userId)->sum('quantity');
+        $toBeReceived = (int) PurchaseOrder::forUser($userId)
             ->whereNotIn('status', ['Delivered', 'Returned', 'Cancelled'])
             ->sum('quantity');
 
         $categoriesCount = Category::whereHas('products', function ($query) use ($userId) {
-            $query->where('user_id', $userId);
+            $query->forUser($userId);
         })->count();
 
-        $salesAggregate = Sale::where('user_id', $userId)
-            ->whereDate('sale_date', '>=', $last7)
+        $salesAggregate = Sale::forUser($userId)
             ->selectRaw('COALESCE(SUM(quantity),0) as units, COALESCE(SUM(selling_price * quantity),0) as revenue, COALESCE(SUM(buying_price * quantity),0) as cost')
             ->first();
 
         $salesUnits = (int) ($salesAggregate->units ?? 0);
-        $salesRevenue = (float) ($salesAggregate->revenue ?? 0);
-        $salesCost = (float) ($salesAggregate->cost ?? 0);
-        $salesProfit = $salesRevenue - $salesCost;
+        $salesRevenue = Money::round($salesAggregate->revenue ?? 0);
+        $salesCost = Money::round($salesAggregate->cost ?? 0);
+        $salesProfit = Money::round($salesRevenue - $salesCost);
 
-        $purchaseQuery = PurchaseOrder::where('user_id', $userId)
-            ->whereDate('order_date', '>=', $last7);
-
-        $purchaseCount = (int) $purchaseQuery->count();
-        $purchaseCost = (float) $purchaseQuery->sum('order_value');
-        $purchaseCancelled = (int) $purchaseQuery->where('status', 'Cancelled')->count();
-        $purchaseReturnedValue = (float) PurchaseOrder::where('user_id', $userId)
-            ->where('status', 'Returned')
-            ->whereDate('order_date', '>=', $last7)
-            ->sum('order_value');
+        $purchaseCount = (int) PurchaseOrder::forUser($userId)->count();
+        $purchaseCost = Money::round(PurchaseOrder::forUser($userId)->sum('order_value'));
+        $purchaseCancelled = (int) PurchaseOrder::forUser($userId)
+            ->where('status', 'Cancelled')
+            ->count();
+        $purchaseReturnedValue = Money::round(
+            PurchaseOrder::forUser($userId)
+                ->where('status', 'Returned')
+                ->sum('order_value')
+        );
 
         $salesPurchaseChart = $this->buildSalesPurchaseChart($userId, $now);
         $orderSummaryChart = $this->buildOrderSummaryChart($userId, $now);
@@ -95,13 +94,13 @@ class DashboardController extends Controller
         $data = [];
 
         foreach ($period as $month) {
-            $sales = Sale::where('user_id', $userId)
+            $sales = Sale::forUser($userId)
                 ->whereYear('sale_date', $month->year)
                 ->whereMonth('sale_date', $month->month)
                 ->selectRaw('SUM(selling_price * quantity) as revenue, SUM(buying_price * quantity) as cost')
                 ->first();
 
-            $purchases = PurchaseOrder::where('user_id', $userId)
+            $purchases = PurchaseOrder::forUser($userId)
                 ->whereYear('order_date', $month->year)
                 ->whereMonth('order_date', $month->month)
                 ->selectRaw('SUM(order_value) as cost')
@@ -109,9 +108,9 @@ class DashboardController extends Controller
 
             $data[] = [
                 'month' => $month->format('M'),
-                'revenue' => (float) ($sales->revenue ?? 0),
-                'cost' => (float) ($purchases->cost ?? 0),
-                'profit' => (float) (($sales->revenue ?? 0) - ($sales->cost ?? 0)),
+                'revenue' => Money::round($sales->revenue ?? 0),
+                'cost' => Money::round($purchases->cost ?? 0),
+                'profit' => Money::round(($sales->revenue ?? 0) - ($sales->cost ?? 0)),
             ];
         }
 
@@ -125,12 +124,12 @@ class DashboardController extends Controller
         $data = [];
 
         foreach ($period as $month) {
-            $ordered = PurchaseOrder::where('user_id', $userId)
+            $ordered = PurchaseOrder::forUser($userId)
                 ->whereYear('order_date', $month->year)
                 ->whereMonth('order_date', $month->month)
                 ->count();
 
-            $delivered = PurchaseOrder::where('user_id', $userId)
+            $delivered = PurchaseOrder::forUser($userId)
                 ->whereYear('delivered_at', $month->year)
                 ->whereMonth('delivered_at', $month->month)
                 ->count();
@@ -150,7 +149,7 @@ class DashboardController extends Controller
         $limit = 3;
         $lastMonth = $now->copy()->subMonth();
 
-        $sales = Sale::where('user_id', $userId)
+        $sales = Sale::forUser($userId)
             ->whereDate('sale_date', '>=', $lastMonth->startOfMonth())
             ->selectRaw('product_id, SUM(quantity) as sold_quantity, SUM(selling_price * quantity) as revenue')
             ->groupBy('product_id')
@@ -159,6 +158,7 @@ class DashboardController extends Controller
             ->get();
 
         $products = Product::with('category')
+            ->forUser($userId)
             ->whereIn('id', $sales->pluck('product_id'))
             ->get()
             ->keyBy('id');
@@ -176,14 +176,14 @@ class DashboardController extends Controller
                 'category' => $product->category?->name,
                 'sold_quantity' => (int) $item->sold_quantity,
                 'remaining_quantity' => (int) $product->quantity,
-                'price' => (float) $product->selling_price,
+                'price' => Money::round($product->selling_price),
             ];
         })->filter()->values()->all();
     }
 
     protected function lowStockProducts(int $userId): array
     {
-        return Product::where('user_id', $userId)
+        return Product::forUser($userId)
             ->whereColumn('quantity', '<=', 'threshold')
             ->orderBy('quantity')
             ->limit(5)

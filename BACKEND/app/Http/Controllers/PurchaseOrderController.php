@@ -9,7 +9,6 @@ use App\Models\Supplier;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderController extends Controller
 {
@@ -22,8 +21,9 @@ class PurchaseOrderController extends Controller
     {
         $status = $request->query('status');
 
-        $orders = PurchaseOrder::with(['product:id,name,product_code,category_id', 'product.category:id,name', 'supplier:id,name', 'store:id,name'])
-            ->where('user_id', $request->user()->id)
+        $orders = PurchaseOrder::query()
+            ->with(['product:id,name,product_code,category_id', 'product.category:id,name', 'supplier:id,name', 'store:id,name'])
+            ->forUser($request->user()->id)
             ->when($status, fn ($query) => $query->where('status', $status))
             ->orderByDesc('order_date')
             ->orderByDesc('created_at')
@@ -35,10 +35,8 @@ class PurchaseOrderController extends Controller
         ]);
     }
 
-    public function show(Request $request, PurchaseOrder $order)
+    public function show(PurchaseOrder $order)
     {
-        $this->authorizeOrder($request, $order);
-
         $order->load(['product', 'supplier', 'store']);
 
         return response()->json([
@@ -52,12 +50,12 @@ class PurchaseOrderController extends Controller
         $userId = $request->user()->id;
         $validated = $this->validatedData($request);
 
-        $product = Product::where('user_id', $userId)->findOrFail($validated['product_id']);
-        $supplier = Supplier::where('user_id', $userId)->findOrFail($validated['supplier_id']);
+        $product = Product::forUser($userId)->findOrFail($validated['product_id']);
+        $supplier = Supplier::forUser($userId)->findOrFail($validated['supplier_id']);
         $store = null;
 
         if (! empty($validated['store_id'])) {
-            $store = Store::where('user_id', $userId)->findOrFail($validated['store_id']);
+            $store = Store::forUser($userId)->findOrFail($validated['store_id']);
         }
 
         $orderValue = $product->buying_price * $validated['quantity'];
@@ -89,19 +87,17 @@ class PurchaseOrderController extends Controller
 
     public function update(Request $request, PurchaseOrder $order)
     {
-        $this->authorizeOrder($request, $order);
-
         $validated = $this->validatedData($request, $order->id);
 
-        $product = Product::where('user_id', $request->user()->id)
+        $product = Product::forUser($request->user()->id)
             ->findOrFail($validated['product_id']);
 
-        $supplier = Supplier::where('user_id', $request->user()->id)
+        $supplier = Supplier::forUser($request->user()->id)
             ->findOrFail($validated['supplier_id']);
 
         $store = null;
         if (! empty($validated['store_id'])) {
-            $store = Store::where('user_id', $request->user()->id)
+            $store = Store::forUser($request->user()->id)
                 ->findOrFail($validated['store_id']);
         }
 
@@ -157,10 +153,8 @@ class PurchaseOrderController extends Controller
         ]);
     }
 
-    public function destroy(Request $request, PurchaseOrder $order)
+    public function destroy(PurchaseOrder $order)
     {
-        $this->authorizeOrder($request, $order);
-
         if ($order->status === 'Delivered') {
             return response()->json([
                 'success' => false,
@@ -188,16 +182,9 @@ class PurchaseOrderController extends Controller
         ]);
     }
 
-    protected function authorizeOrder(Request $request, PurchaseOrder $order): void
-    {
-        if ($order->user_id !== $request->user()->id) {
-            abort(Response::HTTP_FORBIDDEN, 'You are not allowed to access this order.');
-        }
-    }
-
     protected function generateOrderNumber(int $userId): string
     {
-        $count = PurchaseOrder::where('user_id', $userId)->count() + 1;
+        $count = PurchaseOrder::forUser($userId)->count() + 1;
 
         return 'PO-' . str_pad((string) $count, 6, '0', STR_PAD_LEFT);
     }

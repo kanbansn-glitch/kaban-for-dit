@@ -11,10 +11,17 @@ class StoreController extends Controller
 {
     public function index(Request $request)
     {
-        $stores = Store::withCount(['products as product_count' => function ($query) {
-            $query->where('product_store.quantity', '>', 0);
-        }])
-            ->where('user_id', $request->user()->id)
+        $stores = Store::query()
+            ->select('stores.*')
+            ->selectSub(function ($query) {
+                $query->from('product_store as ps')
+                    ->selectRaw('COALESCE(SUM(ps.quantity), 0)')
+                    ->whereColumn('ps.store_id', 'stores.id');
+            }, 'stock_quantity')
+            ->withCount(['products as product_count' => function ($query) {
+                $query->where('product_store.quantity', '>', 0);
+            }])
+            ->forUser($request->user()->id)
             ->orderBy('branch_name')
             ->orderBy('name')
             ->get();
@@ -43,14 +50,14 @@ class StoreController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    public function show(Request $request, Store $store)
+    public function show(Store $store)
     {
-        $this->authorizeStore($request, $store);
-
         $store->load(['products' => function ($query) {
             $query->select('products.id', 'products.name')
                 ->withPivot(['quantity', 'threshold']);
         }]);
+
+        $store->append('stock_quantity');
 
         return response()->json([
             'success' => true,
@@ -60,8 +67,6 @@ class StoreController extends Controller
 
     public function update(Request $request, Store $store)
     {
-        $this->authorizeStore($request, $store);
-
         $store->update($this->validatedData($request, $store->id));
 
         return response()->json([
@@ -73,10 +78,8 @@ class StoreController extends Controller
         ]);
     }
 
-    public function destroy(Request $request, Store $store)
+    public function destroy(Store $store)
     {
-        $this->authorizeStore($request, $store);
-
         if ($store->products()->exists()) {
             return response()->json([
                 'success' => false,
@@ -106,12 +109,5 @@ class StoreController extends Controller
             'postal_code' => ['nullable', 'string', 'max:20'],
             'phone' => ['nullable', 'string', 'max:50'],
         ]);
-    }
-
-    protected function authorizeStore(Request $request, Store $store): void
-    {
-        if ($store->user_id !== $request->user()->id) {
-            abort(Response::HTTP_FORBIDDEN, 'You are not allowed to access this store.');
-        }
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToUser;
+use App\Support\Money;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\PurchaseOrder;
@@ -14,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Product extends Model
 {
     use HasFactory;
+    use BelongsToUser;
 
     protected $fillable = [
         'product_code',
@@ -29,9 +32,13 @@ class Product extends Model
         'status',
     ];
 
+    protected $appends = [
+        'stock_value',
+    ];
+
     protected $casts = [
-        'buying_price' => 'decimal:2',
-        'selling_price' => 'decimal:2',
+        'buying_price' => 'float',
+        'selling_price' => 'float',
         'quantity' => 'integer',
         'threshold' => 'integer',
         'category_id' => 'integer',
@@ -88,5 +95,15 @@ class Product extends Model
     public function sales(): HasMany
     {
         return $this->hasMany(Sale::class);
+    }
+
+    public function getStockValueAttribute(): float
+    {
+        $sellingPrice = (float) ($this->selling_price ?? 0);
+        $buyingPrice = (float) ($this->buying_price ?? 0);
+
+        $unitPrice = $sellingPrice > 0 ? $sellingPrice : $buyingPrice;
+
+        return Money::round(((int) $this->quantity) * $unitPrice);
     }
 }

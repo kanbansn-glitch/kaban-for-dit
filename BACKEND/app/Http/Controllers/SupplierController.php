@@ -11,11 +11,12 @@ class SupplierController extends Controller
 {
     public function index(Request $request)
     {
-        $suppliers = Supplier::withCount(['purchaseOrders as on_the_way' => function ($query) {
-            $query->whereNotIn('status', ['Delivered', 'Returned', 'Cancelled']);
-        }])
+        $suppliers = Supplier::query()
+            ->withCount(['purchaseOrders as on_the_way' => function ($query) {
+                $query->whereNotIn('status', ['Delivered', 'Returned', 'Cancelled']);
+            }])
             ->with(['products:id,name,supplier_id'])
-            ->where('user_id', $request->user()->id)
+            ->forUser($request->user()->id)
             ->orderBy('name')
             ->get()
             ->map(function (Supplier $supplier) {
@@ -71,10 +72,8 @@ class SupplierController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    public function show(Request $request, Supplier $supplier)
+    public function show(Supplier $supplier)
     {
-        $this->authorizeSupplier($request, $supplier);
-
         $supplier->load(['products:id,name,supplier_id', 'purchaseOrders' => function ($query) {
             $query->select('id', 'supplier_id', 'product_id', 'quantity', 'status', 'expected_date');
         }]);
@@ -87,8 +86,6 @@ class SupplierController extends Controller
 
     public function update(Request $request, Supplier $supplier)
     {
-        $this->authorizeSupplier($request, $supplier);
-
         $validated = $request->validate([
             'name' => [
                 'required',
@@ -119,10 +116,8 @@ class SupplierController extends Controller
         ]);
     }
 
-    public function destroy(Request $request, Supplier $supplier)
+    public function destroy(Supplier $supplier)
     {
-        $this->authorizeSupplier($request, $supplier);
-
         if ($supplier->products()->exists()) {
             return response()->json([
                 'success' => false,
@@ -133,12 +128,5 @@ class SupplierController extends Controller
         $supplier->delete();
 
         return response()->noContent();
-    }
-
-    protected function authorizeSupplier(Request $request, Supplier $supplier): void
-    {
-        if ($supplier->user_id !== $request->user()->id) {
-            abort(Response::HTTP_FORBIDDEN, 'You are not allowed to access this supplier.');
-        }
     }
 }

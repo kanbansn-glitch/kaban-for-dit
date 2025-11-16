@@ -23,7 +23,9 @@ return new class extends Migration
                 ->update(['product_code' => $code]);
         }
 
-        DB::statement('ALTER TABLE products MODIFY product_code VARCHAR(255) NOT NULL');
+        if (Schema::getConnection()->getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE products MODIFY product_code VARCHAR(255) NOT NULL');
+        }
 
         Schema::table('products', function (Blueprint $table) {
             $table->unique(['user_id', 'product_code']);

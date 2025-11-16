@@ -17,8 +17,9 @@ class SaleController extends Controller
 
     public function index(Request $request)
     {
-        $sales = Sale::with(['product:id,name,product_code', 'store:id,name'])
-            ->where('user_id', $request->user()->id)
+        $sales = Sale::query()
+            ->with(['product:id,name,product_code', 'store:id,name'])
+            ->forUser($request->user()->id)
             ->orderByDesc('sale_date')
             ->orderByDesc('created_at')
             ->get();
@@ -40,11 +41,11 @@ class SaleController extends Controller
         ]);
 
         $userId = $request->user()->id;
-        $product = Product::where('user_id', $userId)->findOrFail($validated['product_id']);
+        $product = Product::forUser($userId)->findOrFail($validated['product_id']);
         $store = null;
 
         if (! empty($validated['store_id'])) {
-            $store = Store::where('user_id', $userId)->findOrFail($validated['store_id']);
+            $store = Store::forUser($userId)->findOrFail($validated['store_id']);
         }
 
         $sellingPrice = $validated['selling_price'] ?? $product->selling_price;
@@ -88,12 +89,8 @@ class SaleController extends Controller
         ], Response::HTTP_CREATED);
     }
 
-    public function destroy(Request $request, Sale $sale)
+    public function destroy(Sale $sale)
     {
-        if ($sale->user_id !== $request->user()->id) {
-            abort(Response::HTTP_FORBIDDEN);
-        }
-
         $this->db->transaction(function () use ($sale) {
             $product = $sale->product()->lockForUpdate()->first();
 

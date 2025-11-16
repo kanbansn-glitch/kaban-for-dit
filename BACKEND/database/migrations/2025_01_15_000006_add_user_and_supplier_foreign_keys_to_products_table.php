@@ -19,6 +19,12 @@ return new class extends Migration
         // Drop existing supplier_id column if present and recreate with FK
         if (Schema::hasColumn('products', 'supplier_id')) {
             Schema::table('products', function (Blueprint $table) {
+                try {
+                    $table->dropIndex(['supplier_id']);
+                } catch (\Throwable $e) {
+                    // SQLite silently fails when dropping non-existent indexes - ignore.
+                }
+
                 $table->dropColumn('supplier_id');
             });
         }

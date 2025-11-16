@@ -11,6 +11,7 @@ use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Middleware\EnsureModelOwnership;
 use App\Support\ApiRoute;
 use Illuminate\Support\Facades\Route;
 
@@ -47,7 +48,7 @@ ApiRoute::protected('post', 'email/verification-notification', EmailVerification
     'middleware' => 'throttle:6,1',
 ]);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', EnsureModelOwnership::class])->group(function () {
     Route::apiResource('products', ProductController::class)->except(['create', 'edit']);
 
     Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
@@ -71,3 +72,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('verify-email/{id}/{hash}', [EmailVerificationController::class, 'verify'])
     ->middleware(['signed', 'throttle:6,1'])
     ->name('verification.verify');
+
+Route::options('{any}', fn () => response()->noContent())
+    ->where('any', '.*')
+    ->name('api.preflight');

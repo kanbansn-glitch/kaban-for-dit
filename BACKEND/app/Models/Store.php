@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Store extends Model
 {
     use HasFactory;
+    use BelongsToUser;
 
     protected $fillable = [
         'user_id',
@@ -20,6 +22,10 @@ class Store extends Model
         'city',
         'postal_code',
         'phone',
+    ];
+
+    protected $casts = [
+        'stock_quantity' => 'integer',
     ];
 
     /**
@@ -54,5 +60,20 @@ class Store extends Model
     public function sales(): HasMany
     {
         return $this->hasMany(Sale::class);
+    }
+
+    public function getStockQuantityAttribute($value): int
+    {
+        if ($value !== null) {
+            return (int) $value;
+        }
+
+        if ($this->relationLoaded('products')) {
+            return (int) $this->products->sum(function ($product) {
+                return (int) ($product->pivot->quantity ?? 0);
+            });
+        }
+
+        return 0;
     }
 }

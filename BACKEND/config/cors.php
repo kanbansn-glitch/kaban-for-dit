@@ -1,5 +1,11 @@
 <?php
 
+$origins = array_values(array_filter([
+    env('FRONTEND_URL', 'http://localhost:5173'),
+    env('FRONTEND_URL_ALT'),
+    env('APP_URL', 'http://localhost'),
+], static fn ($origin) => is_string($origin) && $origin !== ''));
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -11,14 +17,14 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => [
+        'api/*',
+        'sanctum/csrf-cookie',
+    ],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
-        env('FRONTEND_URL', 'http://localhost:5173'),
-        env('APP_URL', 'http://localhost'),
-    ],
+    'allowed_origins' => $origins,
 
     'allowed_origins_patterns' => [],
 
@@ -28,5 +34,5 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => false,
+    'supports_credentials' => true,
 ];
